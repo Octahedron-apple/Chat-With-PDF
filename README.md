@@ -1,2 +1,2 @@
-# Chat-With-PDF
+# pdf-chat
 an RAG based application 

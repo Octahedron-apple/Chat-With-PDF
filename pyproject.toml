@@ -1,5 +1,5 @@
 [project]
-name = "chat-with-pdf"
+name = "pdf-chat"
 version = "0.1.0"
 description = "An Rag based Chat with pdf application"
 authors = [
