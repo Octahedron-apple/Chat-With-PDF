@@ -2,11 +2,26 @@ import os
 import curses
 import argparse
 
+try:
+    from pdf_chat.engine import ChatEngine
+except ImportError:
+    from engine import ChatEngine
+
+try:
+    from pdf_chat.embedder import Embedder, Database
+except ImportError:
+    from embedder import Embedder, Database
+
+try:
+    from pdf_chat.loader import load_pdf
+except ImportError:
+    from loader import load_pdf
+
 def choose_file(stdscr):
     all_items = os.listdir('.')
     files = []
     for f in all_items:
-        if os.path.isfile(f):
+        if os.path.isfile(f) and f.lower().endswith('.pdf'):
             files.append(f)
     if len(files) == 0:
         return None
@@ -66,3 +81,7 @@ def parse_args():
     if args.provider == "open_router" and args.model == "qwen3.5:2b":
         args.model = "arcee-ai/trinity-large-thinking:free"
     return args
+def main():
+    args = parse_args()
+    curses.wrapper(lambda stdscr: run_chat(stdscr, args))
+    
