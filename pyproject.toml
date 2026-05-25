@@ -1,25 +1,29 @@
 [project]
 name = "pdf-chat"
 version = "0.1.0"
-description = "An Rag based Chat with pdf application"
+description = "An RAG based Chat with PDF application"
 authors = [
-    {name = "Octahedron-apple",email = "bhavya1singh1@gmail.com"}
+    {name = "Octahedron-apple", email = "bhavya1singh1@gmail.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
     "pypdf",
     "langchain-core",
+    "langchain-classic",
     "langchain-openai",
+    "langchain-ollama",
     "langchain-community",
     "faiss-cpu",
     "python-dotenv"
 ]
 
-
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=68", "setuptools-scm"]
+build-backend = "setuptools.backends.legacy:build"
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [project.scripts]
 pdfchat = "pdf_chat.cli:main"
