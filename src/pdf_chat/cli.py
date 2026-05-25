@@ -45,3 +45,9 @@ def choose_file(stdscr):
         elif key == 10 or key == 13:
             chosen_file = files[selected]
             return chosen_file
+
+def get_api_key(stdscr):
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if api_key:
+        return api_key
+
