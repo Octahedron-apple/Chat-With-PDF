@@ -40,4 +40,3 @@ class pdfloader :
             docs.append(Document(page_content=chunk, metadata={"source": self.file_path}))
         self.docs = docs
         return docs
-    
