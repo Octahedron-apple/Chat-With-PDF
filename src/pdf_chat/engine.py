@@ -1,4 +1,5 @@
 import os
+import re
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI 
@@ -53,4 +54,34 @@ class chat_engine:
         question_answer_chain = create_stuff_documents_chain(self.llm, qa_prompt)
         self.rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
         return self.rag_chain
-    
+    def save_memory(self, chat_history):
+        os.makedirs(os.path.dirname(self.history), exist_ok=True)
+        with open(self.history, "w", encoding="utf-8") as f:
+            for msg in chat_history:
+                if isinstance(msg, HumanMessage):
+                    f.write(f"**Human:** {msg.content}\n\n")
+                elif isinstance(msg, AIMessage):
+                    f.write(f"**AI:** {msg.content}\n\n")
+
+    def load_memory(self):
+        chat_history = []
+        if not os.path.exists(self.history):
+            return chat_history
+            
+        with open(self.history, "r", encoding="utf-8") as f:
+            content = f.read()
+            
+        parts = re.split(r'\*\*(Human|AI):\*\*\s*', content)
+        for i in range(1, len(parts), 2):
+            role = parts[i]
+            text = parts[i+1].strip()
+            if role == "Human":
+                chat_history.append(HumanMessage(content=text))
+            elif role == "AI":
+                chat_history.append(AIMessage(content=text))
+                
+        return chat_history
+
+    def clear_memory(self):
+        if os.path.exists(self.history):
+            os.remove(self.history)
