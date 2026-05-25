@@ -19,7 +19,6 @@ class Embedder:
                 model=model_name
             )
         raise ValueError(f"Invalid provider: {provider}")
-
 class Database: 
     def create_and_save(self,documents: list[Document], embedder: Embeddings):
         if not documents: 
