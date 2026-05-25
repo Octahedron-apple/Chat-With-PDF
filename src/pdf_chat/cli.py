@@ -1,5 +1,6 @@
 import os
 import curses
+import argparse
 
 def choose_file(stdscr):
     all_items = os.listdir('.')
@@ -51,3 +52,17 @@ def get_api_key(stdscr):
     if api_key:
         return api_key
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="Chat with PDF CLI")
+    parser.add_argument("--provider", type=str, default="ollama", help="LLM Provider (ollama, open_router)")
+    parser.add_argument("--model", type=str, default="qwen3.5:2b", help="Model name to use")
+    parser.add_argument("--embed_model", type=str, default=None, help="Embedding model to use")
+    args = parser.parse_args()
+    if args.embed_model is None:
+        if args.provider == "open_router":
+            args.embed_model = "nvidia/llama-nemotron-embed-vl-1b-v2:free"
+        else:
+            args.embed_model = "qwen3-embedding:0.6b"  
+    if args.provider == "open_router" and args.model == "qwen3.5:2b":
+        args.model = "arcee-ai/trinity-large-thinking:free"
+    return args
