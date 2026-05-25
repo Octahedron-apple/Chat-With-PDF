@@ -1,21 +1,21 @@
 import os
+import sys
 import curses
 import argparse
+try:
+    import pdf_chat.engine as engine
+except ImportError:
+    import engine
 
 try:
-    from pdf_chat.engine import ChatEngine
+    import pdf_chat.embedder as embedder
 except ImportError:
-    from engine import ChatEngine
+    import embedder
 
 try:
-    from pdf_chat.embedder import Embedder, Database
+    import pdf_chat.loader as loader
 except ImportError:
-    from embedder import Embedder, Database
-
-try:
-    from pdf_chat.loader import load_pdf
-except ImportError:
-    from loader import load_pdf
+    import loader
 
 def choose_file(stdscr):
     all_items = os.listdir('.')
@@ -81,7 +81,66 @@ def parse_args():
     if args.provider == "open_router" and args.model == "qwen3.5:2b":
         args.model = "arcee-ai/trinity-large-thinking:free"
     return args
+def run_chat(chosen_file, args):
+    if not chosen_file:
+        print("No file selected. Exiting.")
+        sys.exit(0)
+        
+    print(f"\n[+] Selected File: {chosen_file}")
+    print(f"[+] Provider: {args.provider.upper()} | Model: {args.model} | Embeddings: {args.embed_model}")
+    
+    print("\n[~] Reading and chunking PDF...")
+    pdf_loader = loader.pdfloader(file_path=chosen_file)
+    pdf_loader.load_pdf()
+    pdf_loader.chunk_maker()
+    docs = pdf_loader.docs_maker()
+    
+    print("[~] Generating Embeddings and building Vector Database...")
+    embedder_factory = embedder.Embedder()
+    embeddings = embedder_factory.get_embedder(provider=args.provider, model_name=args.embed_model)
+    
+    db_manager = embedder.Database()
+    faiss_index = db_manager.create_and_save(documents=docs, embedder=embeddings)
+    
+    retriever = faiss_index.as_retriever(search_kwargs={"k": 3})
+    
+    print("[~] Booting up Chat Engine...")
+    bot = engine.ChatEngine(
+        retriever=retriever,
+        provider=args.provider,
+        model=args.model
+    )
+    
+    print("\n" + "="*50)
+    print(" READY! Type 'exit', 'quit', or 'clear' (to wipe memory).")
+    print("="*50 + "\n")
+    
+    while True:
+        try:
+            user_input = input("You: ")
+            
+            if user_input.lower() in ['exit', 'quit']:
+                print("Goodbye!")
+                break
+            elif user_input.lower() == 'clear':
+                bot.clear_memory()
+                continue
+            elif not user_input.strip():
+                continue
+                
+            print("AI: ", end="", flush=True)
+            for chunk in bot.ask(user_input):
+                print(chunk, end="", flush=True)
+            print("\n")
+            
+        except KeyboardInterrupt:
+            print("\nExiting...")
+            break
+
 def main():
     args = parse_args()
-    curses.wrapper(lambda stdscr: run_chat(stdscr, args))
-    
+    chosen_file = curses.wrapper(choose_file)
+    run_chat(chosen_file, args)
+
+if __name__ == "__main__":
+    main()

@@ -1,7 +1,7 @@
 import os
 import re
-from langchain.chains import create_history_aware_retriever, create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_classic.chains import create_history_aware_retriever, create_retrieval_chain
+from langchain_classic.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_ollama import ChatOllama
@@ -28,7 +28,8 @@ class ChatEngine:
                 api_key=api_key,
                 base_url="https://openrouter.ai/api/v1",
                 model=model,
-                temperature=0.3
+                temperature=0.3,
+                model_kwargs={"extra_body": {"include_reasoning": False}}
             )
         else:
             raise ValueError(f"Unknown provider '{provider}'.")   
@@ -50,7 +51,8 @@ class ChatEngine:
         system_prompt = """
         You are an expert AI assistant.
         Answer the question based on the provided context.
-        If you don't know the answer clearly say that you don't    
+        If you don't know the answer clearly say that you don't.
+        IMPORTANT: Do NOT output any internal thinking, reasoning steps, or <think> tags. Provide ONLY the final answer.
         """
         qa_prompt = ChatPromptTemplate.from_messages([
             ("system", system_prompt + "\n\nContext: {context}"),
@@ -90,13 +92,17 @@ class ChatEngine:
         if os.path.exists(self.history):
             os.remove(self.history)
             self.chat_history = []
-    def ask(self, question: str) -> str:
-        response = self.chain.invoke({
+    def ask(self, question: str):
+        answer = ""
+        for chunk in self.chain.stream({
             "input": question,
             "chat_history": self.chat_history
-        })
-        answer = response["answer"]
+        }):
+            if "answer" in chunk:
+                text_chunk = chunk["answer"]
+                answer += text_chunk
+                yield text_chunk
+        
         self.chat_history.append(HumanMessage(content=question))
         self.chat_history.append(AIMessage(content=answer))
         self._save_memory()
-        return answer
