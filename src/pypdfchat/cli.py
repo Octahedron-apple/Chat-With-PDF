@@ -3,17 +3,17 @@ import sys
 import curses
 import argparse
 try:
-    import pdf_chat.engine as engine
+    import pypdfchat.engine as engine
 except ImportError:
     import engine
 
 try:
-    import pdf_chat.embedder as embedder
+    import pypdfchat.embedder as embedder
 except ImportError:
     import embedder
 
 try:
-    import pdf_chat.loader as loader
+    import pypdfchat.loader as loader
 except ImportError:
     import loader
 
