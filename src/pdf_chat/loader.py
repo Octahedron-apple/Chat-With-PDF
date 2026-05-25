@@ -1,16 +1,18 @@
 import os
 from pypdf import PdfReader
+from langchain_core.documents import Document
 class pdfloader :
-    def __init__(self, chunk_size = 1000, chunk_overlap = 200):
+    def __init__(self,file_path = None, chunk_size = 1000, chunk_overlap = 200):
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.text = ""
         self.chunks = []
-    def load_pdf(self,file_path):
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f"File not found: {file_path}")      
+        self.file_path = file_path
+    def load_pdf(self):
+        if not os.path.exists(self.file_path):
+            raise FileNotFoundError(f"File not found: {self.file_path}")      
         text = ""
-        reader = PdfReader(file_path)
+        reader = PdfReader(self.file_path)
         for page in reader.pages:
             extracted = page.extract_text()
             if extracted:
@@ -32,3 +34,10 @@ class pdfloader :
             start += self.chunk_size - self.chunk_overlap
         self.chunks = chunks
         return chunks
+    def docs_maker(self):
+        docs = []
+        for chunk in self.chunks:
+            docs.append(Document(page_content=chunk, metadata={"source": self.file_path}))
+        self.docs = docs
+        return docs
+    
