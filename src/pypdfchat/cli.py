@@ -36,10 +36,9 @@ def choose_file(stdscr):
         for idx in range(num_files):
             filename = files[idx]
             if idx == selected:
-                prefix = "> "
+                line = f"> {filename} <"
             else:
-                prefix = "  "
-            line = prefix + filename
+                line = f"  {filename}  "
             line_len = len(line)
             diff_x = max_x - line_len
             x = diff_x // 2
