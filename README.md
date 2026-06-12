@@ -1,5 +1,4 @@
 
-```markdown
 # PyPDFChat
 
 A lightweight, terminal-based Retrieval-Augmented Generation (RAG) command-line application that allows you to have interactive, context-aware conversations with any PDF file in your directory.
@@ -13,7 +12,6 @@ PyPDFChat is officially published on [PyPI](https://pypi.org/project/pypdfchat/)
 ## Architecture
 
 The diagram below outlines the data flow from reading a PDF to generating context-aware answers:
-```
 ```mermaid
 flowchart TD
     %% PDF Ingestion Pipeline
